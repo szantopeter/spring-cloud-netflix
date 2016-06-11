@@ -6,7 +6,9 @@ server:
     mime-types: application/xml,application/json
 logging:
   level:
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
+    org.apache.http: TRACE
+    org.apache.http.wire: TRACE
 spring:
   application:
     name: testclient

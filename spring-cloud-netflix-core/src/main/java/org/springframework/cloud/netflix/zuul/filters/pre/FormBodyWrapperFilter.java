@@ -124,7 +124,7 @@ public class FormBodyWrapperFilter extends ZuulFilter {
 		return null;
 	}
 
-	private class FormBodyRequestWrapper extends Servlet30RequestWrapper {
+	private class FormBodyRequestWrapper extends HttpServletRequestWrapper {
 
 		private HttpServletRequest request;
 
