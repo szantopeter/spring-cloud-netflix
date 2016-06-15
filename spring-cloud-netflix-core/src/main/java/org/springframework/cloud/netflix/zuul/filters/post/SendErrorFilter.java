@@ -19,17 +19,14 @@ package org.springframework.cloud.netflix.zuul.filters.post;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 
-import com.netflix.zuul.http.HttpServletRequestWrapper;
-import lombok.extern.apachecommons.CommonsLog;
-
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.Assert;
+import org.springframework.cloud.netflix.zuul.filters.ProxyRequestHelper;
 import org.springframework.util.ReflectionUtils;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 
-import java.lang.reflect.Field;
+import lombok.extern.apachecommons.CommonsLog;
 
 /**
  * @author Spencer Gibb
@@ -39,18 +36,8 @@ public class SendErrorFilter extends ZuulFilter {
 
 	protected static final String SEND_ERROR_FILTER_RAN = "sendErrorFilter.ran";
 
-	private final Field requestField;
-
 	@Value("${error.path:/error}")
 	private String errorPath;
-
-	public SendErrorFilter() {
-		requestField = ReflectionUtils.findField(HttpServletRequestWrapper.class,
-				"req", HttpServletRequest.class);
-		Assert.notNull(requestField,
-				"HttpServletRequestWrapper.req field not found");
-		requestField.setAccessible(true);
-	}
 
 	@Override
 	public String filterType() {
@@ -91,10 +78,7 @@ public class SendErrorFilter extends ZuulFilter {
 			}
 
 			//unwrap request if needed, otherwise tomcat hangs in endless loop
-			if (request instanceof HttpServletRequestWrapper) {
-				request = (HttpServletRequest) ReflectionUtils.getField(requestField,
-						request);
-			}
+			request = ProxyRequestHelper.unwrapIfNeeded(request);
 			RequestDispatcher dispatcher = request.getRequestDispatcher(
 					this.errorPath);
 			if (dispatcher != null) {

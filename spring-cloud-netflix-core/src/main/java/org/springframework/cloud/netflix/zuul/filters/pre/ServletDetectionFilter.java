@@ -23,7 +23,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.http.HttpServletRequestWrapper;
 import com.netflix.zuul.http.ZuulServlet;
 
 /**
@@ -62,7 +61,7 @@ public class ServletDetectionFilter extends ZuulFilter {
 	public Object run() {
 		RequestContext ctx = RequestContext.getCurrentContext();
 		HttpServletRequest request = ctx.getRequest();
-		if (!(request instanceof HttpServletRequestWrapper) && isDispatcherServletRequest(request)) {
+		if (isDispatcherServletRequest(request)) {
 		    ctx.set(RequestUtils.IS_DISPATCHERSERVLETREQUEST, true);
 		} else {
 		    ctx.set(RequestUtils.IS_DISPATCHERSERVLETREQUEST, false);

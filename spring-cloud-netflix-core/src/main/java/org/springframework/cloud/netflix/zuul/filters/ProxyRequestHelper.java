@@ -16,9 +16,13 @@
 
 package org.springframework.cloud.netflix.zuul.filters;
 
+import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
+import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -36,17 +40,17 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.boot.actuate.trace.TraceRepository;
 import org.springframework.cloud.netflix.zuul.util.RequestUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.UriUtils;
 import org.springframework.web.util.WebUtils;
 
 import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.http.HttpServletRequestWrapper;
 import com.netflix.zuul.util.HTTPRequestUtils;
-
-import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
-import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
 
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -62,6 +66,16 @@ public class ProxyRequestHelper {
 	 * Pre-filters can set this up as a set of lowercase strings.
 	 */
 	public static final String IGNORED_HEADERS = "ignoredHeaders";
+
+	private static final Field REQUEST_FIELD;
+
+	static {
+		REQUEST_FIELD = ReflectionUtils.findField(HttpServletRequestWrapper.class,
+				"req", HttpServletRequest.class);
+		Assert.notNull(REQUEST_FIELD,
+				"HttpServletRequestWrapper.req field not found");
+		REQUEST_FIELD.setAccessible(true);
+	}
 
 	private TraceRepository traces;
 
@@ -339,5 +353,18 @@ public class ProxyRequestHelper {
 
 		UriTemplate template = new UriTemplate("?" + query.toString().substring(1));
 		return template.expand(singles).toString();
+	}
+
+	/**
+	 * unwrap request if needed, otherwise tomcat hangs in endless loop
+	 * @param request
+	 * @return
+	 */
+	public static HttpServletRequest unwrapIfNeeded(HttpServletRequest request) {
+		if (request instanceof HttpServletRequestWrapper) {
+			return (HttpServletRequest) ReflectionUtils.getField(REQUEST_FIELD,
+					request);
+		}
+		return request;
 	}
 }

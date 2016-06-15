@@ -17,7 +17,9 @@
 package org.springframework.cloud.netflix.zuul.filters.route;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.cloud.netflix.zuul.filters.ProxyRequestHelper;
 import org.springframework.util.ReflectionUtils;
 
 import com.netflix.zuul.ZuulFilter;
@@ -52,11 +54,12 @@ public class SendForwardFilter extends ZuulFilter {
 		try {
 			RequestContext ctx = RequestContext.getCurrentContext();
 			String path = (String) ctx.get("forward.to");
-			RequestDispatcher dispatcher = ctx.getRequest().getRequestDispatcher(path);
+			HttpServletRequest request = ProxyRequestHelper.unwrapIfNeeded(ctx.getRequest());
+			RequestDispatcher dispatcher = request.getRequestDispatcher(path);
 			if (dispatcher != null) {
 				ctx.set(SEND_FORWARD_FILTER_RAN, true);
 				if (!ctx.getResponse().isCommitted()) {
-					dispatcher.forward(ctx.getRequest(), ctx.getResponse());
+					dispatcher.forward(request, ctx.getResponse());
 					ctx.getResponse().flushBuffer();
 				}
 			}

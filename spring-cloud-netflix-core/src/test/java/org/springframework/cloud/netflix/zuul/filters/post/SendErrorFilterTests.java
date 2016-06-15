@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.netflix.zuul.filters.post;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.After;
@@ -26,10 +30,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import com.netflix.zuul.context.RequestContext;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Spencer Gibb
