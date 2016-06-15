@@ -107,7 +107,7 @@ public class ZuulConfiguration {
 				this.zuulProperties.getServletPattern());
 		// The whole point of exposing this servlet is to provide a route that doesn't
 		// buffer requests.
-		servlet.addInitParameter("buffer-requests", "true");
+		servlet.addInitParameter("buffer-requests", "false");
 		return servlet;
 	}
 
