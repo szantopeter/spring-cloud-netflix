@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.netflix.zuul.web;
 
-import java.util.Properties;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,9 +34,6 @@ public class ZuulController extends ServletWrappingController {
 		setServletClass(ZuulServlet.class);
 		setServletName("zuul");
 		setSupportedMethods((String[]) null); // Allow all
-		Properties initParameters = new Properties();
-		initParameters.put("buffer-requests", "true");
-		setInitParameters(initParameters);
 	}
 
 	@Override

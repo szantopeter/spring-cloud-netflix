@@ -19,60 +19,42 @@ package org.springframework.cloud.netflix.zuul.filters.pre;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.cloud.netflix.zuul.util.RequestUtils;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.http.HttpServletRequestWrapper;
-import com.netflix.zuul.http.ZuulServlet;
 
 /**
- * Detects whether a request is ran through the {@link DispatcherServlet} or {@link ZuulServlet}.
- * The purpose was to detect this up-front at the very beginning of Zuul filter processing
- *  and rely on this information in all filters.
- *  RequestContext is used such that the information is accessible to classes 
- *  which do not have a request reference.
- * @author Adrian Ivan
+ * @author Spencer Gibb
  */
-public class ServletDetectionFilter extends ZuulFilter {
-
-	public ServletDetectionFilter() {
-	}
+/* NOTE: without this filter, it causes SampleZuulProxyWithHttpClientTests.testNotFoundOnProxy & ribbonRouteWithNonExistentUri
+   to hang and fail hours later. I tried making ZuulServlet auto buffer requests like this filter does, but it doesn't work */
+public class RequestWrapperFilter extends ZuulFilter {
 
 	@Override
 	public String filterType() {
 		return "pre";
 	}
 
-	/**
-	 * Must run before other filters that rely on the difference between 
-	 * DispatcherServlet and ZuulServlet.
-	 */
 	@Override
 	public int filterOrder() {
-		return -3;
+		return -2;
 	}
 
 	@Override
 	public boolean shouldFilter() {
-		return true; 
+		return true; // TODO: only if in servlet 3.0 env
 	}
 
 	@Override
 	public Object run() {
 		RequestContext ctx = RequestContext.getCurrentContext();
 		HttpServletRequest request = ctx.getRequest();
-		if (!(request instanceof HttpServletRequestWrapper) && isDispatcherServletRequest(request)) {
-		    ctx.set(RequestUtils.IS_DISPATCHERSERVLETREQUEST, true);
-		} else {
-		    ctx.set(RequestUtils.IS_DISPATCHERSERVLETREQUEST, false);
+		if (RequestUtils.isDispatcherServletRequest() && !(request instanceof HttpServletRequestWrapper)) {
+			// If it's going through the dispatcher we need to buffer the body
+			ctx.setRequest(new HttpServletRequestWrapper(request));
 		}
-
 		return null;
 	}
-	
-    private boolean isDispatcherServletRequest(HttpServletRequest request) {
-        return request.getAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null;
-    }     	
 
 }

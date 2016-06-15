@@ -26,16 +26,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -133,9 +130,7 @@ public abstract class ZuulProxyTestBase {
 
 	@Test
 	public void testNotFoundFromApp() {
-		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-		factory.setReadTimeout(5000);
-		ResponseEntity<String> result = new RestTemplate(factory).exchange(
+		ResponseEntity<String> result = new TestRestTemplate().exchange(
 				"http://localhost:" + this.port + "/simple/local/notfound",
 				HttpMethod.GET, new HttpEntity<>((Void) null), String.class);
 		assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
@@ -170,9 +165,7 @@ public abstract class ZuulProxyTestBase {
 
 	@Test
 	public void ribbonRouteWithNonExistentUri() {
-		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-		factory.setReadTimeout(5000);
-		ResponseEntity<String> result = new RestTemplate(factory).exchange(
+		ResponseEntity<String> result = new TestRestTemplate().exchange(
 				"http://localhost:" + this.port + "/simple/nonExistent", HttpMethod.GET,
 				new HttpEntity<>((Void) null), String.class);
 		assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
@@ -243,7 +236,7 @@ public abstract class ZuulProxyTestBase {
 			return ResponseEntity.ok("Gotten " + id + "!");
 		}
 
-		@RequestMapping(value = "/local/{id}", method = RequestMethod.POST, consumes = MediaType.TEXT_PLAIN_VALUE)
+		@RequestMapping(value = "/local/{id}", method = RequestMethod.POST)
 		public String post(@PathVariable String id, @RequestBody String body) {
 			return "Posted " + id + "!";
 		}

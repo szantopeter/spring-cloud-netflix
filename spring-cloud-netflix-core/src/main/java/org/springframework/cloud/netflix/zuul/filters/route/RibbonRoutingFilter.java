@@ -78,7 +78,7 @@ public class RibbonRoutingFilter extends ZuulFilter {
 			RibbonCommandContext commandContext = buildCommandContext(context);
 			ClientHttpResponse response = forward(commandContext);
 			setResponse(response);
-			//setErrorCodeFor4xx(context, response);
+			setErrorCodeFor4xx(context, response);
 			return response;
 		}
 		catch (ZuulException ex) {
